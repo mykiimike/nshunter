@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS := hardening=+all
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	go build -buildmode=pie -trimpath -ldflags="-s -w" -o nshunter .
+
+override_dh_auto_test:
+	go test -count=1 ./...
+
+override_dh_auto_install:
+	install -D -m 0755 nshunter debian/nshunter/usr/bin/nshunter
+
+override_dh_auto_clean:
+	rm -f nshunter
+	dh_auto_clean

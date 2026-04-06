@@ -58,6 +58,22 @@ go build -o nshunter ./
 
 Self-contained binary (Go dependencies only).
 
+### Debian package (.deb)
+
+On **Debian or Ubuntu** (needs `dpkg-buildpackage`):
+
+```bash
+sudo apt install build-essential debhelper devscripts golang-go
+chmod +x debian/rules   # first clone only, if not executable
+dpkg-buildpackage -us -uc -b
+```
+
+Artifacts appear in the **parent directory** of the repo: `nshunter_<version>_<arch>.deb`, plus `.changes` and `.buildinfo`.
+
+Adjust **`debian/changelog`**, **`debian/control`** (Maintainer / version) before publishing. The package installs `/usr/bin/nshunter` and `/usr/share/doc/nshunter/README.md`.
+
+On **macOS**, build the `.deb` inside a Linux container or VM (Debian packaging expects a GNU/Linux toolchain).
+
 ## Quick start
 
 ```bash

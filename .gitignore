@@ -13,3 +13,12 @@ coverage.out
 
 # OS / editor
 .DS_Store
+
+# Debian package build (dpkg-buildpackage / debuild)
+debian/files
+debian/debhelper-build-stamp
+debian/*.substvars
+debian/*.debhelper
+debian/*.debhelper.log
+debian/nshunter/
+obj-x86_64-linux-gnu/

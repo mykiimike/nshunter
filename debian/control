@@ -1,0 +1,19 @@
+Source: nshunter
+Section: net
+Priority: optional
+Rules-Requires-Root: no
+Build-Depends: debhelper-compat (= 13), golang-go (>= 1.22)
+Standards-Version: 4.6.2
+Maintainer: Michael VERGOZ <michael@vergoz.ch>
+Homepage: https://github.com/mykiimike/nshunter
+Vcs-Browser: https://github.com/mykiimike/nshunter
+Vcs-Git: https://github.com/mykiimike/nshunter.git
+
+Package: nshunter
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: DNSSEC zone exposure analyzer (CLI)
+ nshunter assesses how much of a DNS zone is discoverable through DNSSEC
+ side-channels (NSEC/NSEC3 walking), optional zone transfers (AXFR), and
+ passive sources (certificate transparency registries, zone metadata).
+ Reports are stored locally (Pebble + SQLite).
