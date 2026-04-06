@@ -1,0 +1,15 @@
+# Built binary (repo root)
+/nshunter
+*.exe
+
+# Local runs / scratch data dirs (Pebble, SQLite, captures)
+tmpdata/
+tmpdata-*/
+
+# Go
+*.test
+*.prof
+coverage.out
+
+# OS / editor
+.DS_Store
