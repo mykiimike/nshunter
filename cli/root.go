@@ -4,6 +4,7 @@
 package cli
 
 import (
+	"github.com/mykiimike/nshunter/internal/buildinfo"
 	"github.com/mykiimike/nshunter/logx"
 	"github.com/spf13/cobra"
 )
@@ -19,6 +20,7 @@ var verboseCount int
 var rootCmd = &cobra.Command{
 	Use:   "nshunter",
 	Short: "nshunter — DNSSEC zone exposure analyzer",
+	Version: buildinfo.Version,
 	Long: `nshunter — DNSSEC zone exposure analyzer
 
 Assess how much of your DNS zone content is discoverable through
