@@ -4,10 +4,6 @@
 package cli
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/mattn/go-isatty"
 	"github.com/mykiimike/nshunter/logx"
 	"github.com/spf13/cobra"
 )
@@ -32,9 +28,6 @@ and passive certificate registries (CT via crt.sh; optional Cert Spotter, Censys
 Data is stored in ~/.nshunter/ by default.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		logx.Init(verboseCount)
-		if isatty.IsTerminal(os.Stderr.Fd()) {
-			fmt.Fprintf(os.Stderr, "\033[90m%s — %s\033[0m\n", legalCopyright, legalSPDX)
-		}
 	},
 }
 
