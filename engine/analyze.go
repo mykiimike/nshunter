@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/mykiimike/nshunter/dns"
 	"github.com/mykiimike/nshunter/logx"
@@ -135,11 +136,16 @@ func analyzeNSEC3(result *dns.DNSSECResult, opts *Options) (*AnalysisResult, err
 
 	// Exhaustive brute-force (a-z0-9-, length 1..N) if requested
 	bruteLen := 0
+	bruteTTL := time.Duration(0)
 	if opts != nil {
 		bruteLen = opts.BruteforceLen
+		bruteTTL = opts.BruteforceTTL
 	}
 	var bruteNames []string
-	if bruteLen > 0 && len(observedHashes) > 0 {
+	if bruteTTL > 0 && bruteLen > 0 {
+		log.Printf("[debug] NSEC3 bruteforce: --bruteforce-timeout is set (%s), ignoring --bruteforce-len=%d", bruteTTL, bruteLen)
+	}
+	if (bruteTTL > 0 || bruteLen > 0) && len(observedHashes) > 0 {
 		remainingHashes := make(map[string]bool)
 		for h := range observedHashes {
 			remainingHashes[h] = true
@@ -151,9 +157,15 @@ func analyzeNSEC3(result *dns.DNSSECResult, opts *Options) (*AnalysisResult, err
 			}
 		}
 		if len(remainingHashes) > 0 {
-			log.Printf("[debug] NSEC3 bruteforce: %d hashes remaining after corpus, brute-forcing up to length %d (%s combinations)",
-				len(remainingHashes), bruteLen, formatBruteCount(bruteforceCount(bruteLen)))
-			bruteNames = crackNSEC3Bruteforce(remainingHashes, result.Domain, params.Iterations, params.SaltHex, bruteLen)
+			if bruteTTL > 0 {
+				log.Printf("[debug] NSEC3 bruteforce: %d hashes remaining after corpus, brute-forcing for %s",
+					len(remainingHashes), bruteTTL.Round(time.Second))
+				bruteNames = crackNSEC3BruteforceTimeout(remainingHashes, result.Domain, params.Iterations, params.SaltHex, bruteTTL)
+			} else {
+				log.Printf("[debug] NSEC3 bruteforce: %d hashes remaining after corpus, brute-forcing up to length %d (%s combinations)",
+					len(remainingHashes), bruteLen, formatBruteCount(bruteforceCount(bruteLen)))
+				bruteNames = crackNSEC3Bruteforce(remainingHashes, result.Domain, params.Iterations, params.SaltHex, bruteLen)
+			}
 			for _, fqdn := range bruteNames {
 				logx.SuperDebugf("nsec3 brute hit: %s", fqdn)
 			}
@@ -193,9 +205,15 @@ func analyzeNSEC3(result *dns.DNSSECResult, opts *Options) (*AnalysisResult, err
 
 	if matched > 0 {
 		if len(bruteNames) > 0 {
-			rationale = append(rationale,
-				fmt.Sprintf("%d/%d hashes cracked (%d corpus + %d brute-force len 1–%d)",
-					matched, totalHashes, len(crackedNames), len(bruteNames), bruteLen))
+			if bruteTTL > 0 {
+				rationale = append(rationale,
+					fmt.Sprintf("%d/%d hashes cracked (%d corpus + %d brute-force within %s)",
+						matched, totalHashes, len(crackedNames), len(bruteNames), bruteTTL.Round(time.Second)))
+			} else {
+				rationale = append(rationale,
+					fmt.Sprintf("%d/%d hashes cracked (%d corpus + %d brute-force len 1–%d)",
+						matched, totalHashes, len(crackedNames), len(bruteNames), bruteLen))
+			}
 		} else {
 			rationale = append(rationale,
 				fmt.Sprintf("%d/%d hashes cracked from corpus (%d labels tested)",

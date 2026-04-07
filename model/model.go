@@ -50,18 +50,19 @@ type EnumerationSources struct {
 }
 
 type RunOptions struct {
-	DataDir         string `json:"data_dir"`
-	Verbosity       string `json:"verbosity"`
-	MaxWalk         int    `json:"max_walk"`
-	MaxBudget       uint64 `json:"max_budget"`
-	CorpusPath      string `json:"corpus_path,omitempty"`
-	BruteforceLen   int    `json:"bruteforce_len"`
-	BruteSubdomains bool   `json:"brute_subdomains"`
-	DisableAXFR     bool   `json:"disable_axfr"`
-	DisableNSEC     bool   `json:"disable_nsec"`
-	DisableNSEC3    bool   `json:"disable_nsec3"`
-	DisableRegistry bool   `json:"disable_registry"`
-	DisableMetaHost bool   `json:"disable_meta_hosts"`
+	DataDir           string `json:"data_dir"`
+	Verbosity         string `json:"verbosity"`
+	MaxWalk           int    `json:"max_walk"`
+	MaxBudget         uint64 `json:"max_budget"`
+	CorpusPath        string `json:"corpus_path,omitempty"`
+	BruteforceLen     int    `json:"bruteforce_len"`
+	BruteforceTimeout string `json:"bruteforce_timeout,omitempty"`
+	BruteSubdomains   bool   `json:"brute_subdomains"`
+	DisableAXFR       bool   `json:"disable_axfr"`
+	DisableNSEC       bool   `json:"disable_nsec"`
+	DisableNSEC3      bool   `json:"disable_nsec3"`
+	DisableRegistry   bool   `json:"disable_registry"`
+	DisableMetaHost   bool   `json:"disable_meta_hosts"`
 }
 
 // UnmarshalJSON accepts legacy stored reports that used "disable_crtsh".

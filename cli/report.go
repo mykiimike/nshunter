@@ -73,6 +73,9 @@ func renderMarkdown(r *model.Report) error {
 			fmt.Printf("| corpus | `%s` |\n", r.RunOptions.CorpusPath)
 		}
 		fmt.Printf("| bruteforce-len | `%d` |\n", r.RunOptions.BruteforceLen)
+		if r.RunOptions.BruteforceTimeout != "" {
+			fmt.Printf("| bruteforce-timeout | `%s` |\n", r.RunOptions.BruteforceTimeout)
+		}
 		fmt.Printf("| brute-subdomains | `%v` |\n", r.RunOptions.BruteSubdomains)
 		fmt.Printf("| no-axfr | `%v` |\n", r.RunOptions.DisableAXFR)
 		fmt.Printf("| no-nsec | `%v` |\n", r.RunOptions.DisableNSEC)

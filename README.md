@@ -117,6 +117,7 @@ Options (`analyze`):
 | `--no-meta-hosts` | `false` | Do not merge in-zone NS/MX hostnames into enumerated names |
 | `--brute-subdomains` | `false` | Actively brute-force candidate subdomains via DNS A/AAAA lookups |
 | `--bruteforce-len` | `0` | Exhaustive NSEC3 brute force max label length (`0` disables; typical `5-6`) |
+| `--bruteforce-timeout` | *(off)* | Time budget for NSEC3 brute force (`60s`, `15m`, `2h`, `1d`); when set, this overrides `--bruteforce-len` |
 
 #### Registry sources
 

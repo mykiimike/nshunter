@@ -6,6 +6,7 @@ package cli
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,6 +29,8 @@ var noNSEC3 bool
 var noRegistry bool
 var noMetaHosts bool
 var bruteforceLen int
+var bruteforceTimeoutRaw string
+var bruteforceTimeout time.Duration
 var bruteSubdomains bool
 
 var analyzeCmd = &cobra.Command{
@@ -47,12 +50,19 @@ func init() {
 	analyzeCmd.Flags().BoolVar(&noRegistry, "no-registry", false, "disable passive certificate registry scans (crt.sh; optional Cert Spotter, Censys via env)")
 	analyzeCmd.Flags().BoolVar(&noMetaHosts, "no-meta-hosts", false, "do not add in-zone NS/MX hostnames to enumerated names")
 	analyzeCmd.Flags().IntVar(&bruteforceLen, "bruteforce-len", 0, "exhaustive NSEC3 brute-force: max label length (0=off, recommended 5–6)")
+	analyzeCmd.Flags().StringVar(&bruteforceTimeoutRaw, "bruteforce-timeout", "", "time budget for NSEC3 brute-force (e.g. 60s, 15m, 2h, 1d); overrides --bruteforce-len")
 	analyzeCmd.Flags().BoolVar(&bruteSubdomains, "brute-subdomains", false, "actively brute-force candidate subdomains via DNS A/AAAA lookups")
 	_ = analyzeCmd.MarkFlagRequired("domain")
 	rootCmd.AddCommand(analyzeCmd)
 }
 
 func runAnalyze(cmd *cobra.Command, args []string) error {
+	timeout, err := parseBruteforceTimeout(bruteforceTimeoutRaw)
+	if err != nil {
+		return err
+	}
+	bruteforceTimeout = timeout
+
 	runOpts := buildRunOptions()
 
 	// ── Banner + config ──────────────────────────────────
@@ -131,6 +141,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		DisableNSEC3:    noNSEC3,
 		DisableRegistry: noRegistry,
 		BruteforceLen:   bruteforceLen,
+		BruteforceTTL:   bruteforceTimeout,
 	})
 	if err != nil {
 		return fmt.Errorf("analysis: %w", err)
@@ -198,6 +209,11 @@ func printConfigPanel(opts *model.RunOptions) {
 		uiPanelRow("corpus", opts.CorpusPath)
 	}
 	uiPanelRow("bruteforce-len", fmt.Sprintf("%d", opts.BruteforceLen))
+	if opts.BruteforceTimeout == "" {
+		uiPanelRow("bruteforce-timeout", "off")
+	} else {
+		uiPanelRow("bruteforce-timeout", opts.BruteforceTimeout)
+	}
 	uiPanelRowToggle("brute-subdomains", opts.BruteSubdomains)
 
 	uiPanelSep("COMPUTE")
@@ -364,12 +380,18 @@ func resolveDataDir() string {
 
 func buildRunOptions() *model.RunOptions {
 	return &model.RunOptions{
-		DataDir:         resolveDataDir(),
-		Verbosity:       verbosityLabel(verboseCount),
-		MaxWalk:         maxWalk,
-		MaxBudget:       maxBudget,
-		CorpusPath:      corpusPath,
-		BruteforceLen:   bruteforceLen,
+		DataDir:       resolveDataDir(),
+		Verbosity:     verbosityLabel(verboseCount),
+		MaxWalk:       maxWalk,
+		MaxBudget:     maxBudget,
+		CorpusPath:    corpusPath,
+		BruteforceLen: bruteforceLen,
+		BruteforceTimeout: func() string {
+			if bruteforceTimeout <= 0 {
+				return ""
+			}
+			return bruteforceTimeout.String()
+		}(),
 		BruteSubdomains: bruteSubdomains,
 		DisableAXFR:     noAXFR,
 		DisableNSEC:     noNSEC,
@@ -413,6 +435,9 @@ func profileLabel(opts *model.RunOptions) string {
 	if opts.BruteforceLen > 0 {
 		score++
 	}
+	if opts.BruteforceTimeout != "" {
+		score++
+	}
 
 	switch {
 	case score >= 6:
@@ -436,6 +461,35 @@ func nsec3CorpusBackendLabel() string {
 
 func nsec3BruteEngineLabel() string {
 	return cpuComputeLabel()
+}
+
+func parseBruteforceTimeout(raw string) (time.Duration, error) {
+	raw = strings.TrimSpace(strings.ToLower(raw))
+	if raw == "" {
+		return 0, nil
+	}
+	if strings.HasSuffix(raw, "d") {
+		num := strings.TrimSuffix(raw, "d")
+		if strings.TrimSpace(num) == "" {
+			return 0, fmt.Errorf("invalid --bruteforce-timeout %q (use values like 60s, 15m, 2h, 1d)", raw)
+		}
+		days, err := strconv.ParseFloat(num, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid --bruteforce-timeout %q: %w", raw, err)
+		}
+		if days <= 0 {
+			return 0, fmt.Errorf("--bruteforce-timeout must be > 0")
+		}
+		return time.Duration(days * float64(24*time.Hour)), nil
+	}
+	d, err := time.ParseDuration(raw)
+	if err != nil {
+		return 0, fmt.Errorf("invalid --bruteforce-timeout %q (use values like 60s, 15m, 2h, 1d): %w", raw, err)
+	}
+	if d <= 0 {
+		return 0, fmt.Errorf("--bruteforce-timeout must be > 0")
+	}
+	return d, nil
 }
 
 func cpuComputeLabel() string {

@@ -10,14 +10,15 @@ import (
 )
 
 type Options struct {
-	CorpusPath    string
-	MaxBudget     uint64
-	UseGPU        bool
-	DisableAXFR   bool
-	DisableNSEC   bool
-	DisableNSEC3  bool
+	CorpusPath      string
+	MaxBudget       uint64
+	UseGPU          bool
+	DisableAXFR     bool
+	DisableNSEC     bool
+	DisableNSEC3    bool
 	DisableRegistry bool
-	BruteforceLen int // max label length for exhaustive brute-force (0 = disabled)
+	BruteforceLen   int           // max label length for exhaustive brute-force (0 = disabled)
+	BruteforceTTL   time.Duration // time budget for brute-force (takes precedence over BruteforceLen)
 }
 
 type AnalysisResult struct {
