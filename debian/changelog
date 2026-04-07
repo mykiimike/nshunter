@@ -1,3 +1,9 @@
+nshunter (1.0.1-1) unstable; urgency=medium
+
+  * Bump release version to 1.0.1.
+
+ -- Michael VERGOZ <michael@vergoz.ch>  Tue, 07 Apr 2026 10:43:47 +0200
+
 nshunter (1.0.0-1) unstable; urgency=medium
 
   * Initial Debian packaging.
